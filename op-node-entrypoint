@@ -42,6 +42,18 @@ else
 fi
 export OP_NODE_P2P_ADVERTISE_IP=$PUBLIC_IP
 
+# Validate that auth secret is provided before writing
+if [[ -z "${OP_NODE_L2_ENGINE_AUTH_RAW:-}" ]]; then
+  echo "expected OP_NODE_L2_ENGINE_AUTH_RAW to be set" 1>&2
+  exit 1
+fi
+
+# Validate that auth file path is provided
+if [[ -z "${OP_NODE_L2_ENGINE_AUTH:-}" ]]; then
+  echo "expected OP_NODE_L2_ENGINE_AUTH to be set" 1>&2
+  exit 1
+fi
+
 echo "$OP_NODE_L2_ENGINE_AUTH_RAW" > "$OP_NODE_L2_ENGINE_AUTH"
 
 exec ./op-node

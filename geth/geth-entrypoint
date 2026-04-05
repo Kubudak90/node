@@ -28,6 +28,18 @@ fi
 
 mkdir -p $GETH_DATA_DIR
 
+# Validate that auth secret is provided before writing
+if [[ -z "${OP_NODE_L2_ENGINE_AUTH_RAW:-}" ]]; then
+    echo "expected OP_NODE_L2_ENGINE_AUTH_RAW to be set" 1>&2
+    exit 1
+fi
+
+# Validate that auth file path is provided
+if [[ -z "${OP_NODE_L2_ENGINE_AUTH:-}" ]]; then
+    echo "expected OP_NODE_L2_ENGINE_AUTH to be set" 1>&2
+    exit 1
+fi
+
 echo "$OP_NODE_L2_ENGINE_AUTH_RAW" > "$OP_NODE_L2_ENGINE_AUTH"
 
 if [ "${OP_GETH_ETH_STATS+x}" = x ]; then
@@ -67,22 +79,21 @@ exec ./geth \
     --ws.addr=0.0.0.0 \
     --ws.port="$WS_PORT" \
     --ws.origins="*" \
-    --ws.api=debug,eth,net,engine \
+    --ws.api=web3,debug,eth,net,engine \
     --metrics \
     --metrics.addr=0.0.0.0 \
     --metrics.port="$METRICS_PORT" \
-    --syncmode="$OP_GETH_SYNCMODE" \
-    --gcmode="$OP_GETH_GCMODE" \
-    --maxpeers=100 \
-    --rollup.sequencerhttp="$OP_GETH_SEQUENCER_HTTP" \
-    --rollup.halt=major \
-    --op-network="$OP_NODE_NETWORK" \
+    --authrpc.addr=0.0.0.0 \
     --discovery.port="$DISCOVERY_PORT" \
     --port="$P2P_PORT" \
-    --rollup.disabletxpoolgossip=true \
+    --rollup.sequencerhttp="$OP_GETH_SEQUENCER_HTTP" \
+    --rollup.historicalrpc="$OP_GETH_HISTORICAL_RPC" \
+    --op-network="$OP_NODE_NETWORK" \
+    --gcmode="$OP_GETH_GCMODE" \
+    --syncmode="$OP_GETH_SYNCMODE" \
     --cache="$GETH_CACHE" \
     --cache.database="$GETH_CACHE_DATABASE" \
     --cache.gc="$GETH_CACHE_GC" \
     --cache.snapshot="$GETH_CACHE_SNAPSHOT" \
     --cache.trie="$GETH_CACHE_TRIE" \
-    $ADDITIONAL_ARGS # intentionally unquoted
+    $ADDITIONAL_ARGS
